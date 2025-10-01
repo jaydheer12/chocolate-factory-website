@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CocoaCrave Chocolates</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 🖼️ Background image instead of video */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: white;
+      background: url('bg1.jpg') no-repeat center center/cover; /* 🔥 Replace with your image */
+      min-height: 100vh;
+    }
+
+    header {
+      background: rgba(0,0,0,0.5);
+      padding: 15px;
+      text-align: center;
+    }
+
+    nav {
+      margin-top: 10px;
+    }
+
+    nav input {
+      padding: 6px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+
+    nav button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #e67e22;
+      color: white;
+      margin-left: 10px;
+    }
+
+    .product-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .product {
+      background: rgba(0,0,0,0.6);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      position: relative;
+    }
+
+    .product img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+
+    .offer-badge {
+      background: crimson;
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: white;
+      font-size: 12px;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+
+    .btn-buy, .btn-cart {
+      margin: 8px 5px 0;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .btn-buy {
+      background: #27ae60;
+    }
+
+    .btn-cart {
+      background: #2980b9;
+    }
+
+    #floatingCart {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: rgba(0,0,0,0.85);
+      padding: 15px;
+      border-radius: 10px;
+      color: white;
+      display: none;
+      width: 260px;
+    }
+
+    #floatingCart h3 {
+      margin-top: 0;
+    }
+
+    #floatingCart button {
+      margin-top: 10px;
+      width: 100%;
+      background: #e67e22;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>CocoaCrave Chocolates</h1>
+  <nav>
+    <input type="text" id="searchBar" placeholder="Search chocolates..." />
+    <span id="cartSummary">Cart: 0 items | ₹0</span>
+    <button id="logoutBtn">Logout</button>
+  </nav>
+</header>
+
+<div class="product-gallery" id="productsGrid"></div>
+
+<div id="floatingCart">
+  <h3>Your Cart</h3>
+  <ul id="cartItems"></ul>
+  <div id="cartTotal"></div>
+  <button id="checkoutBtn">Checkout</button>
+</div>
+
+<script>
+if(!localStorage.getItem("cc_sess")) window.location.href = "login.html";
+
+// ✅ products with 3 new ones added
+const products = [
+  {id:1,name:"Debauve & Gallais",price:499,img:"debauve & gallais.jpg",offer:"20% OFF"},
+  {id:2,name:"Fruit & Nut Milk",price:439,img:"fruit_nut_milk.jpg",offer:"10% OFF"},
+  {id:3,name:"Delafee",price:499,img:"delafée.jpg",offer:"15% OFF"},
+  {id:4,name:"Godiva Chocolatier",price:449,img:"download.jpg",offer:"5% OFF"},
+  {id:5,name:"Guylian",price:499,img:"guylian.jpg",offer:"30% OFF"},
+  {id:6,name:"House of Knipschildt, LLC",price:449,img:"House of Knipschildt, LLC.jpg",offer:"25% OFF"},
+  {id:7,name:"Vanilla Latte",price:439,img:"vanilla_latte.jpg",offer:"No Offer"},
+  {id:8,name:"Vosges haut-Chocolate",price:439,img:"Vosges Haut-Chocolat.jpg",offer:"No Offer"},
+  {id:9,name:"Zest-Orange",price:479,img:"zest_orange.jpg",offer:"15% OFF"},
+  {id:10,name:"Toffee-Nut",price:459,img:"toffee_nut.jpg",offer:"20% OFF"},
+  {id:11,name:"To'ak Chocolate",price:489,img:"To'ak Chocolate.jpg",offer:"10% OFF"},
+  {id:12,name:"Tiramisu",price:499,img:"tiramisu.jpg",offer:"No Offer"},
+  {id:13,name:"Teuscher",price:459,img:"teuscher.jpg",offer:"5% OFF"},
+  {id:14,name:"Mint Chocolate",price:479,img:"MINT CHOCOLATE.jpg",offer:"25% OFF"},
+  {id:15,name:"Lindt Excellence",price:429,img:"LINDT EXCELLENCE.jpg",offer:"No Offer"},
+  // ⭐ New 3 chocolates
+  {id:16,name:"Ferrero Rocher",price:469,img:"ferrero_rocher.jpg",offer:"15% OFF"},
+  {id:17,name:"Galaxy Caramel",price:439,img:"galaxy_caramel.jpg",offer:"10% OFF"},
+  {id:18,name:"Hershey’s Kisses",price:459,img:"hersheys_kisses.jpg",offer:"No Offer"}
+];
+
+const productsGrid = document.getElementById("productsGrid");
+const searchBar = document.getElementById("searchBar");
+const cartSummary = document.getElementById("cartSummary");
+const floatingCart = document.getElementById("floatingCart");
+const cartItemsUl = document.getElementById("cartItems");
+const cartTotalDiv = document.getElementById("cartTotal");
+const checkoutBtn = document.getElementById("checkoutBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+function getCart() {
+  return JSON.parse(localStorage.getItem("cc_cart") || "[]");
+}
+function setCart(cart) {
+  localStorage.setItem("cc_cart", JSON.stringify(cart));
+}
+function renderProducts(filter = "") {
+  const filtered = products.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+  if(filtered.length === 0) {
+    productsGrid.innerHTML = '<p style="color:#bbb;text-align:center;">No chocolates found</p>';
+    return;
+  }
+  productsGrid.innerHTML = filtered.map(p => `
+    <div class="product">
+      ${p.offer !== "No Offer" ? `<div class="offer-badge">${p.offer}</div>` : ''}
+      <img src="${p.img}" alt="${p.name}" />
+      <h3>${p.name}</h3>
+      <p class="price">₹${p.price}</p>
+      <button class="btn-buy" onclick="buyNow(${p.id})">Buy Now</button>
+      <button class="btn-cart" onclick="addToCart(${p.id})">Add to Cart</button>
+    </div>
+  `).join('');
+}
+function updateCartSummary() {
+  const cart = getCart();
+  const count = cart.length;
+  const total = cart.reduce((sum, id) => {
+    const prod = products.find(p => p.id === id);
+    return sum + (prod ? prod.price : 0);
+  }, 0);
+  cartSummary.textContent = `Cart: ${count} item${count !== 1 ? 's' : ''} | ₹${total}`;
+  updateFloatingCart();
+}
+function updateFloatingCart() {
+  const cart = getCart();
+  if (!cart.length) {
+    floatingCart.style.display = "none";
+    return;
+  }
+  floatingCart.style.display = "block";
+
+  const itemCounts = {};
+  cart.forEach(id => (itemCounts[id] = (itemCounts[id] || 0) + 1));
+
+  let html = "";
+  let total = 0;
+  Object.keys(itemCounts).forEach(id => {
+    const p = products.find(prod => prod.id == id);
+    if (p) {
+      const qty = itemCounts[id];
+      const subTotal = p.price * qty;
+      total += subTotal;
+      html += `<li>
+        ${p.name} x${qty} <span>₹${subTotal}</span>
+        <button style="margin-left:8px;background:#c0392b;color:white;padding:3px 7px;border-radius:6px;border:none;cursor:pointer;" onclick="removeFromCart(${p.id})">Remove</button>
+      </li>`;
+    }
+  });
+  cartItemsUl.innerHTML = html;
+  cartTotalDiv.textContent = `Total: ₹${total}`;
+}
+
+window.addToCart = function(id) {
+  let cart = getCart();
+  cart.push(id);
+  setCart(cart);
+  updateCartSummary();
+  alert("Added to cart!");
+}
+window.buyNow = function(id) {
+  let cart = getCart();
+  cart.push(id);
+  setCart(cart);
+  updateCartSummary();
+  alert("Item purchased successfully!");
+}
+window.removeFromCart = function(id) {
+  let cart = getCart();
+  let idx = cart.indexOf(Number(id));
+  if(idx > -1) {
+    cart.splice(idx, 1);
+    setCart(cart);
+    updateCartSummary();
+  }
+}
+searchBar.addEventListener("input", e => renderProducts(e.target.value));
+checkoutBtn.addEventListener("click", () => {
+  const cart = getCart();
+  if (!cart.length) {
+    alert("Cart is empty!");
+    return;
+  }
+  setCart([]);
+  updateCartSummary();
+  alert("Thank you for your purchase!");
+});
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("cc_sess");
+  window.location.href = "login.html";
+});
+renderProducts();
+updateCartSummary();
+</script>
+</body>
+</html>

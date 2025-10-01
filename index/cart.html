@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Cart - CocoaCrave</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header>
+    <h1>Your Cart</h1>
+    <button onclick="logout()" class="logout-btn">Logout</button>
+  </header>
+
+  <main>
+    <div id="cartContainer" class="cart-container"></div>
+    <button id="checkoutBtn" class="checkout-btn">Checkout</button>
+  </main>
+
+  <script>
+    const products = JSON.parse(localStorage.getItem("cc_products") || "[]");
+
+    function getCart() {
+      return JSON.parse(localStorage.getItem("cc_cart") || "[]");
+    }
+    function setCart(cart) {
+      localStorage.setItem("cc_cart", JSON.stringify(cart));
+    }
+
+    function renderCart() {
+      const cart = getCart();
+      const container = document.getElementById("cartContainer");
+      if(cart.length === 0) {
+        container.innerHTML = "<p>Your cart is empty.</p>";
+        return;
+      }
+
+      let itemCounts = {};
+      cart.forEach(id => itemCounts[id] = (itemCounts[id] || 0) + 1);
+
+      let html = "<ul>";
+      let total = 0;
+      Object.keys(itemCounts).forEach(id => {
+        const prod = products.find(p => p.id == id);
+        if(prod) {
+          let qty = itemCounts[id];
+          let sub = prod.price * qty;
+          total += sub;
+          html += `<li>${prod.name} x${qty} - ₹${sub}
+            <button onclick="removeItem(${id})">Remove</button>
+          </li>`;
+        }
+      });
+      html += "</ul>";
+      html += `<p><strong>Total: ₹${total}</strong></p>`;
+      document.getElementById("cartContainer").innerHTML = html;
+    }
+
+    function removeItem(id) {
+      let cart = getCart();
+      let idx = cart.indexOf(id);
+      if(idx > -1) {
+        cart.splice(idx, 1);
+        setCart(cart);
+        renderCart();
+      }
+    }
+
+    document.getElementById("checkoutBtn").addEventListener("click", () => {
+      let cart = getCart();
+      if(!cart.length) {
+        alert("Cart is empty!");
+        return;
+      }
+      alert("Thank you for your purchase!");
+      setCart([]);
+      renderCart();
+    });
+
+    function logout() {
+      localStorage.removeItem("cc_sess");
+      window.location.href = "login.html";
+    }
+
+    renderCart();
+  </script>
+</body>
+</html>

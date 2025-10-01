@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('bg1.jpg') no-repeat center center/cover; /* 🔥 Background Image */
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.9); /* semi-transparent white */
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: black; /* 🔥 Heading black */
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+      color: black; /* 🔥 Label black */
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      background: grey;   /* 🔥 Grey background */
+      color: black;       /* 🔥 Text black */
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: black;  /* 🔥 Black on hover */
+      color: white;       /* 🔥 White text on hover */
+    }
+
+    .message {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      text-decoration: none;
+      color: black;  /* 🔥 Link black */
+      font-weight: bold;
+    }
+
+    a:hover {
+      color: grey;  /* Hover effect for link */
+    }
+  </style>
+</head>
+<body>
+  <form id="registerForm" autocomplete="off">
+    <h2>Register</h2>
+    <label for="email">Email</label>
+    <input id="email" type="email" required autocomplete="email" />
+
+    <label for="dob">Date of Birth</label>
+    <input id="dob" type="date" max="" required />
+
+    <label for="password">Password</label>
+    <input id="password" type="password" minlength="6" required />
+
+    <button type="submit">Register</button>
+    <div class="message" id="msg"></div>
+    <a href="login.html">Back to Login</a>
+  </form>
+
+  <script>
+    document.getElementById("dob").max = new Date().toISOString().split("T")[0];
+
+    document.getElementById("registerForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const email = e.target.email.value.trim().toLowerCase();
+      const dob = e.target.dob.value;
+      const password = e.target.password.value;
+
+      let users = JSON.parse(localStorage.getItem("cc_users")) || [];
+      if (users.find(u => u.email === email)) {
+        showMsg("Email already registered!", true);
+        return;
+      }
+
+      users.push({ email, dob, password });
+      localStorage.setItem("cc_users", JSON.stringify(users));
+      showMsg("Registration successful! Redirecting to login...", false);
+
+      setTimeout(() => window.location.href = "login.html", 2000);
+    });
+
+    function showMsg(text, isError) {
+      const msg = document.getElementById("msg");
+      msg.textContent = text;
+      msg.style.color = isError ? "tomato" : "green";
+    }
+  </script>
+</body>
+</html>
